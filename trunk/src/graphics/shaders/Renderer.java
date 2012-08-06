@@ -58,12 +58,10 @@ class Renderer implements GLSurfaceView.Renderer {
 
 	// object constants
 	private final int ROAD = 0;
-	private final int TETRAHEDRON = 1;
-	private final int CUBE = 2;
-	private final int OCTAHEDRON = 3;
+	private final int CUBE = 1;
 
 	// The objects
-	Object3D[] _objects = new Object3D[4];
+	Object3D[] _objects = new Object3D[2];
 
 	// current object
 	private int _currentObject;
@@ -71,9 +69,6 @@ class Renderer implements GLSurfaceView.Renderer {
 	// Modelview/Projection matrices
 	private float[] mMVPMatrix = new float[16];
 	private float[] mProjMatrix = new float[16];
-	private float[] mScaleMatrix = new float[16];   // scaling
-	private float[] mRotXMatrix = new float[16];	// rotation x
-	private float[] mRotYMatrix = new float[16];	// rotation y
 	private float[] mTransMatrix = new float[16];
 	private float[] mMMatrix = new float[16];		// rotation
 	private float[] mVMatrix = new float[16]; 		// modelview
@@ -90,7 +85,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	private float[] lightDiffuse;
 	// angle rotation for light
 	float angle = 0.0f;
-	boolean lightRotate = true; 
+	boolean lightRotate = false; 
 
 
 	// material properties
@@ -139,15 +134,15 @@ class Renderer implements GLSurfaceView.Renderer {
 		try {
 			int[] normalMapTextures = {R.raw.diffuse_old, R.raw.diffusenormalmap_deepbig};
 			_objects[0] = new Object3D(R.raw.road, false, context);
-			_objects[1] = new Object3D(R.raw.tetrahedron, false, context);
-			_objects[2] = new Object3D(normalMapTextures, R.raw.texturedcube, true, context);
-			_objects[3] = new Object3D(R.raw.octahedron, false, context);
+			_objects[1] = new Object3D(normalMapTextures, R.raw.texturedcube, true, context);
+			//_objects[2] = new Object3D(normalMapTextures, R.raw.texturedcube, true, context);
+			//_objects[3] = new Object3D(R.raw.octahedron, false, context);
 		} catch (Exception e) {
 			//showAlert("" + e.getMessage());
 		}
 
 		// set current object and shader
-		_currentObject = this.OCTAHEDRON;
+		_currentObject = this.CUBE;
 		_currentShader = this.GOURAUD_SHADER;
 	}
 
