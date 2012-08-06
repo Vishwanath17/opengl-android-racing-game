@@ -21,7 +21,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -37,8 +36,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	float time = 0.0f;
 	float distanceY = 0.0f;
 	float accelY = 0.0f;
-	float startTime = SystemClock.uptimeMillis();
-	
+
 	private static final int FLOAT_SIZE_BYTES = 4;
 	private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 8 * FLOAT_SIZE_BYTES;
 	private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
@@ -189,11 +187,6 @@ class Renderer implements GLSurfaceView.Renderer {
 		Matrix.setIdentityM(mMMatrix, 0);
 		Matrix.setIdentityM(mTransMatrix, 0);
 		
-		
-		float time = startTime - SystemClock.uptimeMillis() / 1000;
-
-		
-		
 		if(Math.abs(mDY) < 2)
 			mDY = 0;
 		
@@ -208,8 +201,8 @@ class Renderer implements GLSurfaceView.Renderer {
 		}
 			distanceY += accelY;
 			Log.d("mDY:", String.valueOf(mDY));
-
-		Matrix.translateM(mTransMatrix, 0, 2.0f/* + mDX / 2*/, 10.0f, 20.0f - distanceY / 1000);
+			
+		Matrix.translateM(mTransMatrix, 0, 0, 10.0f, 20.0f - distanceY / 1000);
 		
 		Matrix.multiplyMM(mMMatrix, 0, mMMatrix, 0, mTransMatrix, 0);    //Translate
 		Matrix.multiplyMM(mMVPMatrix, 0, mVMatrix, 0, mMMatrix, 0);      //View
