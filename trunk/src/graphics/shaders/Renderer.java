@@ -6,6 +6,8 @@ package graphics.shaders;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -95,7 +97,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	private float matShininess;
 
 	// eye pos
-	private float[] eyePos = {0.0f, 0.0f, 0.0f};
+	private float[] eyePos = {0.0f, 15.0f, 25.0f};
 
 	// scaling
 	float scaleX = 1.0f;
@@ -135,8 +137,6 @@ class Renderer implements GLSurfaceView.Renderer {
 			int[] normalMapTextures = {R.raw.diffuse_old, R.raw.diffusenormalmap_deepbig};
 			_objects[0] = new Object3D(R.raw.road, false, context);
 			_objects[1] = new Object3D(normalMapTextures, R.raw.texturedcube, true, context);
-			//_objects[2] = new Object3D(normalMapTextures, R.raw.texturedcube, true, context);
-			//_objects[3] = new Object3D(R.raw.octahedron, false, context);
 		} catch (Exception e) {
 			//showAlert("" + e.getMessage());
 		}
@@ -178,7 +178,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	}
 	
 	
-	private void drawCar(int program){
+	private void drawCar(int program, float[] startPos){
 		Matrix.setIdentityM(mMMatrix, 0);
 		Matrix.setIdentityM(mTransMatrix, 0);
 		
@@ -197,7 +197,17 @@ class Renderer implements GLSurfaceView.Renderer {
 			distanceY += accelY;
 			Log.d("mDY:", String.valueOf(mDY));
 			
-		Matrix.translateM(mTransMatrix, 0, 0, 10.0f, 20.0f - distanceY / 1000);
+		//eyePos
+			eyePos[2] = 25.0f - distanceY / 1000; 
+			Matrix.setLookAtM(
+					mVMatrix,
+					0, 
+					eyePos[0], eyePos[1], eyePos[2], 
+					0.0f, 0.0f, 0.0f - distanceY / 1000, 
+					0.0f, 1.0f, 0.0f);
+			
+			
+		Matrix.translateM(mTransMatrix, 0, startPos[0], startPos[1], startPos[2] - distanceY / 1000);
 		
 		Matrix.multiplyMM(mMMatrix, 0, mMMatrix, 0, mTransMatrix, 0);    //Translate
 		Matrix.multiplyMM(mMVPMatrix, 0, mVMatrix, 0, mMMatrix, 0);      //View
@@ -271,6 +281,86 @@ class Renderer implements GLSurfaceView.Renderer {
 	}
 	
 	
+	private void drawCar2(int program, float[] startPos){
+		Matrix.setIdentityM(mMMatrix, 0);
+		Matrix.setIdentityM(mTransMatrix, 0);
+
+		Matrix.translateM(mTransMatrix, 0, startPos[0], startPos[1], startPos[2]);
+		
+		Matrix.multiplyMM(mMMatrix, 0, mMMatrix, 0, mTransMatrix, 0);    //Translate
+		Matrix.multiplyMM(mMVPMatrix, 0, mVMatrix, 0, mMMatrix, 0);      //View
+		Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mMVPMatrix, 0); //Proj
+
+		// send to the shader
+		GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "uMVPMatrix"), 1, false, mMVPMatrix, 0);
+
+		// Create the normal modelview matrix
+		// Invert + transpose of mvpmatrix
+		Matrix.invertM(normalMatrix, 0, mMVPMatrix, 0);
+		Matrix.transposeM(normalMatrix, 0, normalMatrix, 0);
+
+		// send to the shader
+		GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "normalMatrix"), 1, false, mMVPMatrix, 0);
+		
+		
+		/*** DRAWING OBJECT **/
+		// Get buffers from mesh
+		Object3D ob = this._objects[this.CUBE];
+		Mesh mesh = ob.getMesh();
+		FloatBuffer _vb = mesh.get_vb();
+		ShortBuffer _ib = mesh.get_ib();
+
+		short[] _indices = mesh.get_indices();
+
+		// Vertex buffer
+
+		// the vertex coordinates
+		_vb.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
+		GLES20.glVertexAttribPointer(GLES20.glGetAttribLocation(program, "aPosition"), 3, GLES20.GL_FLOAT, false,
+				TRIANGLE_VERTICES_DATA_STRIDE_BYTES, _vb);
+		GLES20.glEnableVertexAttribArray(GLES20.glGetAttribLocation(program, "aPosition"));
+
+		// the normal info
+		_vb.position(TRIANGLE_VERTICES_DATA_NOR_OFFSET);
+		GLES20.glVertexAttribPointer(GLES20.glGetAttribLocation(program, "aNormal"), 3, GLES20.GL_FLOAT, false,
+				TRIANGLE_VERTICES_DATA_STRIDE_BYTES, _vb);
+		GLES20.glEnableVertexAttribArray(GLES20.glGetAttribLocation(program, "aNormal"));
+
+		// Texture info
+
+		// bind textures
+		if (ob.hasTexture()) {// && enableTexture) {
+			// number of textures
+			int[] texIDs = ob.get_texID(); 
+			
+			for(int i = 0; i < _texIDs.length; i++) {
+				GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
+				//Log.d("TEXTURE BIND: ", i + " " + texIDs[i]);
+				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texIDs[i]);
+				GLES20.glUniform1i(GLES20.glGetUniformLocation(program, "texture" + (i+1)), i);
+			}
+		}
+
+		// enable texturing? [fix - sending float is waste]
+		GLES20.glUniform1f(GLES20.glGetUniformLocation(program, "hasTexture")/*shader.hasTextureHandle*/, ob.hasTexture() && enableTexture ? 2.0f : 0.0f);
+
+		// texture coordinates
+		_vb.position(TRIANGLE_VERTICES_DATA_TEX_OFFSET);
+		GLES20.glVertexAttribPointer(GLES20.glGetAttribLocation(program, "textureCoord")/*shader.maTextureHandle*/, 2, GLES20.GL_FLOAT, false,
+				TRIANGLE_VERTICES_DATA_STRIDE_BYTES, _vb);
+		GLES20.glEnableVertexAttribArray(GLES20.glGetAttribLocation(program, "textureCoord"));//GLES20.glEnableVertexAttribArray(shader.maTextureHandle);
+
+		// Draw with indices
+		GLES20.glDrawElements(GLES20.GL_TRIANGLES, _indices.length, GLES20.GL_UNSIGNED_SHORT, _ib);
+		checkGlError("glDrawElements");
+
+		/** END DRAWING OBJECT ***/
+		
+	}
+	
+	
+	
+	
 	private void drawRoad(int program){
 		Matrix.setIdentityM(mMMatrix, 0);
 		
@@ -296,6 +386,17 @@ class Renderer implements GLSurfaceView.Renderer {
 		ShortBuffer _ib = mesh.get_ib();
 
 		short[] _indices = mesh.get_indices();
+		
+		/*float[] myVertices = {
+			-20, 0, -20,
+			-20f, 0, 20,
+			20, 0, -20,
+			20, 0, 20
+		};
+		
+		_vb = ByteBuffer.allocateDirect(myVertices.length
+				* FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		_vb.put(myVertices);*/
 
 		// Vertex buffer
 
@@ -362,15 +463,14 @@ class Renderer implements GLSurfaceView.Renderer {
 		GLES20.glUseProgram(program);
 		checkGlError("glUseProgram");
 		
-		// eye position
-		GLES20.glUniform3fv(GLES20.glGetUniformLocation(program, "eyePos")/*shader.eyeHandle*/, 1, eyePos, 0);
-
 		setLight(program);		
-		drawCar(program);
+		drawCar(program, new float[] {0.0f, 10.0f, 20.0f});
+		drawCar2(program, new float[] {-10.0f, 10.0f, 10.0f});
 		drawRoad(program);
 		
 		
-		
+		// eye position
+		GLES20.glUniform3fv(GLES20.glGetUniformLocation(program, "eyePos")/*shader.eyeHandle*/, 1, eyePos, 0);
 	}
 
 	/*
@@ -434,7 +534,7 @@ class Renderer implements GLSurfaceView.Renderer {
 		Matrix.setLookAtM(
 				mVMatrix,
 				0, 
-				0.0f, 15.0f, 25.0f, 
+				eyePos[0], eyePos[1], eyePos[2], 
 				0.0f, 0.0f, 0.0f, 
 				0.0f, 1.0f, 0.0f);
 		/*Matrix.setLookAtM(

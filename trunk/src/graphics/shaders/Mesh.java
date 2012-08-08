@@ -215,6 +215,7 @@ public class Mesh {
 
 				// Calculate the face normal
 				setFaceNormal(i, firstV, secondV, thirdV);
+				
 			}
 
 			// finally calculate the exact vertex normals
