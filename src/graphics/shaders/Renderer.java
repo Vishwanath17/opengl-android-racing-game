@@ -97,7 +97,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	private float matShininess;
 
 	// eye pos
-	private float[] eyePos = {0.0f, 15.0f, 25.0f};
+	private float[] eyePos = {0.0f, 10.0f, 25.0f};
 
 	// scaling
 	float scaleX = 1.0f;
@@ -464,8 +464,8 @@ class Renderer implements GLSurfaceView.Renderer {
 		checkGlError("glUseProgram");
 		
 		setLight(program);		
-		drawCar(program, new float[] {0.0f, 10.0f, 20.0f});
-		drawCar2(program, new float[] {-10.0f, 10.0f, 10.0f});
+		drawCar(program, new float[] {0.0f, 5.0f, 20.0f});
+		drawCar2(program, new float[] {-10.0f, 5.0f, 10.0f});
 		drawRoad(program);
 		
 		
