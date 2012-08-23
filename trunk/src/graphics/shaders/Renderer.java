@@ -189,6 +189,7 @@ class Renderer implements GLSurfaceView.Renderer {
 		Matrix.setIdentityM(mMMatrix, 0);
 		Matrix.setIdentityM(mTransMatrix, 0);
 		
+		//Képernyõ Y tengely
 		if(Math.abs(mDY) < 2)
 			mDY = 0;
 		
@@ -204,35 +205,35 @@ class Renderer implements GLSurfaceView.Renderer {
 			distanceY += accelY;
 			Log.d("mDY:", String.valueOf(mDY));
 			
+			
+		//Képernyõ X tengely
+		if(Math.abs(mDX) < 2)
+			mDX = 0;
+		float[] forward = {
+				(float) Math.cos(mDX / 50),
+				0.0f,
+				(float) Math.sin(mDX / 50)
+				};
 		
-			
-			
-			if(Math.abs(mDX) < 2)
-				mDX = 0;
-			float[] forward = {
-					(float) Math.cos(mDX / 50),
-					0.0f,
-					(float) Math.sin(mDX / 50)
-					};
-			
-			lookAt[0] = eyePos[0] + 25 * forward[0];
-			lookAt[1] = eyePos[1] + 25 * forward[1];
-			lookAt[2] = eyePos[2] + 25 * forward[2];
-			
-			
-			//eyePos
-			eyePos[0] = 0.0f + distanceY / 1000 * forward[0];
-			eyePos[2] = 25.0f + distanceY / 1000 * forward[2];
-			
-			Matrix.setLookAtM(
-					mVMatrix,
-					0, 
-					eyePos[0], eyePos[1], eyePos[2], 
-					lookAt[0], lookAt[1], lookAt[2],
-					0.0f, 1.0f, 0.0f);
+		//lookAt			
+		lookAt[0] = eyePos[0] + 25 * forward[0];
+		lookAt[1] = eyePos[1] + 25 * forward[1];
+		lookAt[2] = eyePos[2] + 25 * forward[2];
+		
+		
+		//eyePos
+		eyePos[0] = 0.0f + distanceY / 1000 * forward[0];
+		eyePos[2] = 25.0f + distanceY / 1000 * forward[2];
+		
+		Matrix.setLookAtM(
+				mVMatrix,
+				0, 
+				eyePos[0], eyePos[1], eyePos[2], 
+				lookAt[0], lookAt[1], lookAt[2],
+				0.0f, 1.0f, 0.0f);
 			
 		
-			
+		//Kormányzás
 		startPos[0] = eyePos[0] + 5 * forward[0];
 		startPos[2] = eyePos[2] + 5 * forward[2];
 		
