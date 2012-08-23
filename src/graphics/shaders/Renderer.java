@@ -98,6 +98,13 @@ class Renderer implements GLSurfaceView.Renderer {
 
 	// eye pos
 	private float[] eyePos = {0.0f, 10.0f, 25.0f};
+	private float[] lookAt = {0.0f, 0.0f, 0.0f};
+	private float[] lookDir = {
+			lookAt[0] - eyePos[0],
+			lookAt[1] - eyePos[1],
+			lookAt[2] - eyePos[2]
+	};
+	//private float m_u = (float) Math.atan(lookDir[2] / lookDir[0]); 
 
 	// scaling
 	float scaleX = 1.0f;
@@ -197,17 +204,39 @@ class Renderer implements GLSurfaceView.Renderer {
 			distanceY += accelY;
 			Log.d("mDY:", String.valueOf(mDY));
 			
-		//eyePos
-			eyePos[2] = 25.0f - distanceY / 1000; 
+		
+			
+			
+			if(Math.abs(mDX) < 2)
+				mDX = 0;
+			float[] forward = {
+					(float) Math.cos(mDX / 50),
+					0.0f,
+					(float) Math.sin(mDX / 50)
+					};
+			
+			lookAt[0] = eyePos[0] + 25 * forward[0];
+			lookAt[1] = eyePos[1] + 25 * forward[1];
+			lookAt[2] = eyePos[2] + 25 * forward[2];
+			
+			
+			//eyePos
+			eyePos[0] = 0.0f + distanceY / 1000 * forward[0];
+			eyePos[2] = 25.0f + distanceY / 1000 * forward[2];
+			
 			Matrix.setLookAtM(
 					mVMatrix,
 					0, 
 					eyePos[0], eyePos[1], eyePos[2], 
-					0.0f, 0.0f, 0.0f - distanceY / 1000, 
+					lookAt[0], lookAt[1], lookAt[2],
 					0.0f, 1.0f, 0.0f);
 			
+		
 			
-		Matrix.translateM(mTransMatrix, 0, startPos[0], startPos[1], startPos[2] - distanceY / 1000);
+		startPos[0] = eyePos[0] + 5 * forward[0];
+		startPos[2] = eyePos[2] + 5 * forward[2];
+		
+		Matrix.translateM(mTransMatrix, 0, startPos[0], startPos[1], startPos[2]);
 		
 		Matrix.multiplyMM(mMMatrix, 0, mMMatrix, 0, mTransMatrix, 0);    //Translate
 		Matrix.multiplyMM(mMVPMatrix, 0, mVMatrix, 0, mMMatrix, 0);      //View
@@ -466,6 +495,9 @@ class Renderer implements GLSurfaceView.Renderer {
 		setLight(program);		
 		drawCar(program, new float[] {0.0f, 5.0f, 20.0f});
 		drawCar2(program, new float[] {-10.0f, 5.0f, 10.0f});
+		drawCar2(program, new float[] {-5.0f, 5.0f, -10.0f});
+		drawCar2(program, new float[] {10.0f, 5.0f, 0.0f});
+		drawCar2(program, new float[] {50.0f, 5.0f, 15.0f});
 		drawRoad(program);
 		
 		

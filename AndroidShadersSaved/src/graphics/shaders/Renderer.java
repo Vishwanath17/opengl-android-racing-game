@@ -12,6 +12,7 @@ import java.nio.ShortBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,7 +26,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
-class Renderer implements GLSurfaceView.Renderer {
+@TargetApi(8) class Renderer implements GLSurfaceView.Renderer {
 	/******************************
 	 * PROPERTIES
 	 ******************************/
